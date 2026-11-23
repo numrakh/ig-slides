@@ -39,6 +39,21 @@ def wait_ready(cid, tries=30):
         time.sleep(4)
     raise SystemExit(f"container {cid} not ready")
 
+
+def facebook_too(cap_path, urls):
+    """Best effort: also post to the Facebook Page via fb_publish.py --after. Never raises."""
+    if not os.environ.get("FACEBOOK_PAGE_TOKEN", "").strip():
+        return
+    import subprocess
+    fb = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fb_publish.py")
+    try:
+        r = subprocess.run([sys.executable, "-I", fb, "--after", cap_path, *urls],
+                           capture_output=True, text=True, timeout=900)
+        msg = (r.stdout.strip() or r.stderr.strip())[-300:]
+        print(f"facebook: {msg}", file=sys.stderr)
+    except Exception as e:
+        print(f"facebook: error {e}", file=sys.stderr)
+
 if sys.argv[1:] == ["--check"]:
     a = call("GET", IG_ID, fields="username,media_count")
     q = call("GET", f"{IG_ID}/content_publishing_limit", fields="quota_usage,config")
@@ -49,6 +64,8 @@ caption = open(sys.argv[1], encoding="utf-8").read().strip()
 urls = sys.argv[2:]
 if not 2 <= len(urls) <= 10:
     sys.exit("need 2-10 image URLs")
+import atexit
+atexit.register(facebook_too, sys.argv[1], urls)
 kids = []
 for u in urls:
     kids.append(call("POST", f"{IG_ID}/media", image_url=u, is_carousel_item="true")["id"])
