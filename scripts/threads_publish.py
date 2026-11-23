@@ -52,12 +52,12 @@ def threads_text(caption):
     return text if len(text) <= 500 else text[:497].rstrip() + "..."
 
 
-def facebook_too(cap_path, urls):
+def facebook_too(cap_path, urls, here):
     """Best effort: also post to the Facebook Page via fb_publish.py --after. Never raises."""
     if not os.environ.get("FACEBOOK_PAGE_TOKEN", "").strip():
         return
     import subprocess
-    fb = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fb_publish.py")
+    fb = os.path.join(here, "fb_publish.py")
     try:
         r = subprocess.run([sys.executable, "-I", fb, "--after", cap_path, *urls],
                            capture_output=True, text=True, timeout=900)
@@ -82,7 +82,8 @@ if not 2 <= len(urls) <= 20:
     sys.exit("need 2-20 image URLs")
 if not dry:
     import atexit
-    atexit.register(facebook_too, args[0], urls)
+    # __file__ is gone by atexit time in Python 3.13, so pass the folder now
+    atexit.register(facebook_too, args[0], urls, os.path.dirname(os.path.abspath(__file__)))
 uid = me["id"]
 kids = [call("POST", f"{uid}/threads", media_type="IMAGE", image_url=u, is_carousel_item="true")["id"] for u in urls]
 for k in kids:
