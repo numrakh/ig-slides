@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -I /home/user/ig-slides/scripts/ig_comments.py list)",
+      "Bash(python3 -I /home/user/ig-slides/scripts/ig_comments.py reply:*)",
+      "Bash(python3 -I scripts/ig_comments.py list)",
+      "Bash(python3 -I scripts/ig_comments.py reply:*)"
+    ]
+  }
+}
