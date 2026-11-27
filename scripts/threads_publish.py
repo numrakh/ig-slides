@@ -52,12 +52,14 @@ def threads_text(caption):
     return text if len(text) <= 500 else text[:497].rstrip() + "..."
 
 
-def facebook_too(cap_path, urls):
+# Resolved at import time: at interpreter exit (when atexit runs) __file__ may be gone.
+FB_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fb_publish.py")
+
+def facebook_too(cap_path, urls, fb=FB_SCRIPT):
     """Best effort: also post to the Facebook Page via fb_publish.py --after. Never raises."""
     if not os.environ.get("FACEBOOK_PAGE_TOKEN", "").strip():
         return
     import subprocess
-    fb = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fb_publish.py")
     try:
         r = subprocess.run([sys.executable, "-I", fb, "--after", cap_path, *urls],
                            capture_output=True, text=True, timeout=900)
